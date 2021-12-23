@@ -1,0 +1,14 @@
+.vs
+/Library
+/Temp
+/.vs/SRP/v16/.suo
+/.vs/SRP/v16/Browse.VC.db
+/Assembly-CSharp-Editor.csproj
+/SRP.sln
+/Unity.RenderPipelines.Core.Editor.csproj
+/Unity.RenderPipelines.Core.Editor.Tests.csproj
+/Unity.RenderPipelines.Core.Runtime.csproj
+/Unity.RenderPipelines.Core.Runtime.Tests.csproj
+/Unity.RenderPipelines.Core.ShaderLibrary.csproj
+/Assembly-CSharp.csproj
+/obj
