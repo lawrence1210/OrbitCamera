@@ -23,11 +23,16 @@ public class OrbitCamera1 : MonoBehaviour
     //限制相机垂直旋转角度 防止相机翻转
     [SerializeField, Range(-89f, 89f)]
     float minVerticalAngle = -30f, maxVerticalAngle = 60f;
+    //可配置的对齐延迟，默认设置为5秒。如果你根本不想要自动对准，那么你可以简单地设置一个非常高的延迟
+    [SerializeField]
+    float alignDelay = 5;
 
 
-    Vector3 focusPoint;
+    Vector3 focusPoint, previousFocusPoint;
     //X角定义了它的垂直方向，0垂直于地平线，90垂直于地平线。Y角定义了水平方向，0沿着世界Z轴。在Vector2字段中跟踪这些角度，默认设置为45和0。
     Vector2 orbitAngles = new Vector2(45f, 0f);
+    //上一次计算镜头旋转的时间
+    float lastManualRotationTime;
 
     private void OnValidate()
     {
@@ -49,8 +54,8 @@ public class OrbitCamera1 : MonoBehaviour
         UpdateFocusPoint();
         //构造一个四元数来定义相机的外观旋转，并向其传递轨道角度
         Quaternion lookRotation;
-        //镜头输入角度发生变化时
-        if (ManualRotation())
+        //镜头输入角度发生变化时或者对齐延迟时间到了
+        if (ManualRotation() || AutomaticRotation())
         {
             ConstrainAngles();
             lookRotation = Quaternion.Euler(orbitAngles);//将向量隐式转换为Vector3，并且Z旋转设置为零。
@@ -68,6 +73,7 @@ public class OrbitCamera1 : MonoBehaviour
     //确定镜头焦点
     void UpdateFocusPoint()
     {
+        previousFocusPoint = focusPoint;
         Vector3 targetPoint = focus.position;
         if(focusRadius > 0)
         {
@@ -100,9 +106,33 @@ public class OrbitCamera1 : MonoBehaviour
         if(input.x < -e || input.x > e || input.y < -e || input.y > e)
         {
             orbitAngles += rotationSpeed * Time.unscaledDeltaTime * input;
+            lastManualRotationTime = Time.unscaledTime;
             return true;
         }
         return false;
+    }
+
+    bool AutomaticRotation()
+    {
+        if(Time.unscaledTime - lastManualRotationTime < alignDelay)
+        {
+            return false;
+        }
+
+        //计算当前帧的运动矢量，运动向量的平方大小小于一个较小的阈值（如0.0001），那么运动不多的情况下就不旋转了
+        //movement为物体的运动矢量（移动的方向向量）
+        Vector2 movement = new Vector2(focusPoint.x - previousFocusPoint.x,
+                                       focusPoint.z - previousFocusPoint.z);
+        float movementDeltaSqr = movement.sqrMagnitude;
+        if (movementDeltaSqr < 0.000001f)
+        {
+            return false;
+        }
+        //计算出相机要在物体身后，需要旋转的角度
+        float headingAngle = GetAngle(movement / Mathf.Sqrt(movementDeltaSqr));
+        orbitAngles.y = headingAngle;
+
+        return true;
     }
 
     //限制镜头的旋转角度
@@ -119,5 +149,13 @@ public class OrbitCamera1 : MonoBehaviour
         {
             orbitAngles.y -= 360f;
         }
+    }
+
+    //将2D方向转换为角度，方向的Y分量是我们所需角度的余弦，因此将其通过Mathf.Acos放置，然后从弧度转换为度
+    static float GetAngle(Vector2 direction)
+    {
+        float angle = Mathf.Acos(direction.y) * Mathf.Rad2Deg;
+        //如果X为负，则它为逆时针方向，我们需要从360°中减去该角度
+        return direction.x < 0 ? 360f - angle : angle;
     }
 }
