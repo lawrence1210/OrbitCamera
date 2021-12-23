@@ -36,6 +36,7 @@ public class OrbitCamera1 : MonoBehaviour
     Vector2 orbitAngles = new Vector2(45f, 0f);
     //上一次计算镜头旋转的时间
     float lastManualRotationTime;
+    Camera regularCamera;
 
     private void OnValidate()
     {
@@ -47,6 +48,7 @@ public class OrbitCamera1 : MonoBehaviour
 
     private void Awake()
     {
+        regularCamera = GetComponent<Camera>();
         focusPoint = focus.position;
         transform.localRotation = Quaternion.Euler(orbitAngles);
     }
@@ -71,10 +73,10 @@ public class OrbitCamera1 : MonoBehaviour
         Vector3 lookDirection = lookRotation * Vector3.forward;
         Vector3 lookPosition = focusPoint - lookDirection * distance;
         //判断相机是否被阻挡
-        if(Physics.Raycast(focusPoint, -lookDirection, out RaycastHit hit, distance))
+        if(Physics.BoxCast(focusPoint, CameraHalfExtends, -lookDirection, out RaycastHit hit, lookRotation, distance - regularCamera.nearClipPlane))
         {
             //如果我们命中了某物，那么我们将使用命中距离而不是配置的距离
-            lookPosition = focusPoint - lookDirection * hit.distance;
+            lookPosition = focusPoint - lookDirection * (hit.distance + regularCamera.nearClipPlane);
         }
         transform.SetPositionAndRotation(lookPosition, lookRotation);
     }
@@ -180,5 +182,17 @@ public class OrbitCamera1 : MonoBehaviour
         float angle = Mathf.Acos(direction.y) * Mathf.Rad2Deg;
         //如果X为负，则它为逆时针方向，我们需要从360°中减去该角度
         return direction.x < 0 ? 360f - angle : angle;
+    }
+
+    //盒投射需要一个3D向量，该向量包含box的一半延伸，这意味着其宽度，高度和深度的一半
+    Vector3 CameraHalfExtends
+    {
+        get {
+            Vector3 halfExtends;
+            halfExtends.y = regularCamera.nearClipPlane * Mathf.Tan(0.5f * Mathf.Deg2Rad * regularCamera.fieldOfView);
+            halfExtends.x = halfExtends.y * regularCamera.aspect;
+            halfExtends.z = 0f;
+            return halfExtends;
+        }
     }
 }
