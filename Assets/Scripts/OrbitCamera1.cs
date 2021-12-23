@@ -26,6 +26,9 @@ public class OrbitCamera1 : MonoBehaviour
     //可配置的对齐延迟，默认设置为5秒。如果你根本不想要自动对准，那么你可以简单地设置一个非常高的延迟
     [SerializeField]
     float alignDelay = 5;
+    //使相机对齐旋转速度与当前角度和所需角度之差成比例，通过对齐平滑范围配置选项（0-90范围，默认值为45°）来配置此角度
+    [SerializeField, Range(0f, 90f)]
+    float alignSmoothRange = 45f;
 
 
     Vector3 focusPoint, previousFocusPoint;
@@ -130,8 +133,22 @@ public class OrbitCamera1 : MonoBehaviour
         }
         //计算出相机要在物体身后，需要旋转的角度
         float headingAngle = GetAngle(movement / Mathf.Sqrt(movementDeltaSqr));
-        orbitAngles.y = headingAngle;
-
+        //通过将当前角度和所需角度传递给Mathf.DeltaAngle并取其绝对值来找到AutomaticRotation中的角度增量
+        float deltaAbs = Mathf.Abs(Mathf.DeltaAngle(orbitAngles.y, headingAngle));
+        //float rotationChange = rotationSpeed * Mathf.Min(Time.unscaledDeltaTime, movementDeltaSqr);
+        float rotationChange = rotationSpeed * Time.unscaledDeltaTime;
+        if (deltaAbs < alignSmoothRange)
+        {
+            rotationChange *= deltaAbs / alignSmoothRange;
+        }
+        else if(180f - deltaAbs < alignSmoothRange) //当焦点移向相机时，防止摄像机全速旋转，每次航向越过180°边界时都会改变方向
+        {
+            rotationChange *= (180f - deltaAbs) / alignSmoothRange;
+        }
+        //orbitAngles.y = headingAngle;
+        //平滑对齐
+        orbitAngles.y = Mathf.MoveTowardsAngle(orbitAngles.y, headingAngle, rotationChange);
+        Debug.Log("=================================");
         return true;
     }
 
