@@ -29,6 +29,9 @@ public class OrbitCamera1 : MonoBehaviour
     //使相机对齐旋转速度与当前角度和所需角度之差成比例，通过对齐平滑范围配置选项（0-90范围，默认值为45°）来配置此角度
     [SerializeField, Range(0f, 90f)]
     float alignSmoothRange = 45f;
+    //盒投射时可以忽略一些元素
+    [SerializeField]
+    LayerMask obstructionMask = -1;
 
 
     Vector3 focusPoint, previousFocusPoint;
@@ -81,7 +84,7 @@ public class OrbitCamera1 : MonoBehaviour
         Vector3 castDirection = castLine / castDistance;
 
         //判断相机是否被阻挡
-        if (Physics.BoxCast(castFrom, CameraHalfExtends, castDirection, out RaycastHit hit, lookRotation, castDistance))
+        if (Physics.BoxCast(castFrom, CameraHalfExtends, castDirection, out RaycastHit hit, lookRotation, castDistance, obstructionMask))
         {
             //如果我们命中了某物，那么我们将使用命中距离而不是配置的距离
             rectPosition = castFrom + castDirection * hit.distance;
