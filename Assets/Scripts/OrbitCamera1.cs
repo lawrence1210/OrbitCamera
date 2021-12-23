@@ -72,11 +72,21 @@ public class OrbitCamera1 : MonoBehaviour
         
         Vector3 lookDirection = lookRotation * Vector3.forward;
         Vector3 lookPosition = focusPoint - lookDirection * distance;
+        //计算盒型投射理想的焦点位置
+        Vector3 rectOffset = lookDirection * regularCamera.nearClipPlane;
+        Vector3 rectPosition = lookPosition + rectOffset;
+        Vector3 castFrom = focus.position;
+        Vector3 castLine = rectPosition - castFrom;
+        float castDistance = castLine.magnitude;
+        Vector3 castDirection = castLine / castDistance;
+
         //判断相机是否被阻挡
-        if(Physics.BoxCast(focusPoint, CameraHalfExtends, -lookDirection, out RaycastHit hit, lookRotation, distance - regularCamera.nearClipPlane))
+        if (Physics.BoxCast(castFrom, CameraHalfExtends, castDirection, out RaycastHit hit, lookRotation, castDistance))
         {
             //如果我们命中了某物，那么我们将使用命中距离而不是配置的距离
-            lookPosition = focusPoint - lookDirection * (hit.distance + regularCamera.nearClipPlane);
+            rectPosition = castFrom + castDirection * hit.distance;
+            lookPosition = rectPosition - rectOffset;
+            //lookPosition = focusPoint - lookDirection * (hit.distance + regularCamera.nearClipPlane);
         }
         transform.SetPositionAndRotation(lookPosition, lookRotation);
     }
