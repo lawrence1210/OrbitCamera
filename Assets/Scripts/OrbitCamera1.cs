@@ -135,6 +135,7 @@ public class OrbitCamera1 : MonoBehaviour
         float headingAngle = GetAngle(movement / Mathf.Sqrt(movementDeltaSqr));
         //通过将当前角度和所需角度传递给Mathf.DeltaAngle并取其绝对值来找到AutomaticRotation中的角度增量
         float deltaAbs = Mathf.Abs(Mathf.DeltaAngle(orbitAngles.y, headingAngle));
+        //将旋转速度缩放为时间增量和平方运动增量中的最小值来进一步抑制微小角度的旋转（看似有bug）
         //float rotationChange = rotationSpeed * Mathf.Min(Time.unscaledDeltaTime, movementDeltaSqr);
         float rotationChange = rotationSpeed * Time.unscaledDeltaTime;
         if (deltaAbs < alignSmoothRange)
@@ -148,7 +149,6 @@ public class OrbitCamera1 : MonoBehaviour
         //orbitAngles.y = headingAngle;
         //平滑对齐
         orbitAngles.y = Mathf.MoveTowardsAngle(orbitAngles.y, headingAngle, rotationChange);
-        Debug.Log("=================================");
         return true;
     }
 
