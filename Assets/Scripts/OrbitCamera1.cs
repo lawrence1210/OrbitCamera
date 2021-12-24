@@ -53,6 +53,7 @@ public class OrbitCamera1 : MonoBehaviour
     {
         regularCamera = GetComponent<Camera>();
         focusPoint = focus.position;
+        //lastManualRotationTime = Time.unscaledTime;
         transform.localRotation = Quaternion.Euler(orbitAngles);
     }
 
@@ -148,11 +149,11 @@ public class OrbitCamera1 : MonoBehaviour
         Vector2 movement = new Vector2(focusPoint.x - previousFocusPoint.x,
                                        focusPoint.z - previousFocusPoint.z);
         float movementDeltaSqr = movement.sqrMagnitude;
-        if (movementDeltaSqr < 0.000001f)
+        if (movementDeltaSqr == 0)
         {
             return false;
         }
-        //计算出相机要在物体身后，需要旋转的角度
+        //计算出相机要在物体身后，需要旋转到什么角度
         float headingAngle = GetAngle(movement / Mathf.Sqrt(movementDeltaSqr));
         //通过将当前角度和所需角度传递给Mathf.DeltaAngle并取其绝对值来找到AutomaticRotation中的角度增量
         float deltaAbs = Mathf.Abs(Mathf.DeltaAngle(orbitAngles.y, headingAngle));
@@ -167,7 +168,6 @@ public class OrbitCamera1 : MonoBehaviour
         {
             rotationChange *= (180f - deltaAbs) / alignSmoothRange;
         }
-        //orbitAngles.y = headingAngle;
         //平滑对齐
         orbitAngles.y = Mathf.MoveTowardsAngle(orbitAngles.y, headingAngle, rotationChange);
         return true;

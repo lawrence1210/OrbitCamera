@@ -8963,10 +8963,15 @@ MonoBehaviour:
   focus: {fileID: 315004441}
   distance: 5
   focusRadius: 1
-  focusCentering: 0.5
+  focusCentering: 0.7
   rotationSpeed: 90
   minVerticalAngle: -30
   maxVerticalAngle: 60
+  alignDelay: 5
+  alignSmoothRange: 45
+  obstructionMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!1 &1300512869
 GameObject:
   m_ObjectHideFlags: 0
