@@ -8964,10 +8964,10 @@ MonoBehaviour:
   distance: 5
   focusRadius: 1
   focusCentering: 0.7
-  rotationSpeed: 90
+  rotationSpeed: 106
   minVerticalAngle: -30
   maxVerticalAngle: 60
-  alignDelay: 5
+  alignDelay: 3
   alignSmoothRange: 45
   obstructionMask:
     serializedVersion: 2
